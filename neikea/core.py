@@ -5,9 +5,12 @@ from typing import List, Optional
 
 import discord
 import plugins
+from plugins import core
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("neikea")
+
+PLUGINS = {"Time": core.Time}
 
 
 class Event:
@@ -37,6 +40,9 @@ class Dispatcher(discord.Client):
 
     def load_processors(self):
         self.processors = []
+        for p in PLUGINS:
+            self.processors.append(PLUGINS[p](p))
+        self.processors.sort(key=lambda x: x.priority)
 
     async def on_ready(self):
         logger.info("Connected as %s (id: %s)", self.user, self.user.id)

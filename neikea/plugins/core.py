@@ -18,6 +18,7 @@ class Time(Processor):
         await event.discord_message.channel.send(
             t.strftime(random.choice(time_replies))
         )
+        event.processed = True
 
     @match("date")
     async def date(self, event):
@@ -25,3 +26,4 @@ class Time(Processor):
         await event.discord_message.channel.send(
             t.strftime(random.choice(date_replies))
         )
+        event.processed = True

@@ -4,6 +4,7 @@ from traceback import format_exception
 from typing import List, Optional
 
 import discord
+import plugins
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("neikea")
@@ -22,6 +23,21 @@ class Event:
 
 
 class Dispatcher(discord.Client):
+    processors: List[plugins.Processor] = []
+
+    def __init__(self):
+        super().__init__()
+
+        self.processors = []
+        self.load_processors()
+
+    async def process(self, event: Event):
+        for p in self.processors:
+            await p.process(event)
+
+    def load_processors(self):
+        self.processors = []
+
     async def on_ready(self):
         logger.info("Connected as %s (id: %s)", self.user, self.user.id)
         for guild in self.guilds:
@@ -35,6 +51,7 @@ class Dispatcher(discord.Client):
         logger.info(f"<%s> %s", message.author, message.content)
         event = Event("message", message.content, message.author)
         event.discord_message = message
+        await self.process(event)
 
     async def on_error(self, event, *args, **kwargs):
         logger.error("Error: %s, %s, %s", event, args, kwargs)

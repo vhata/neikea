@@ -9,6 +9,18 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("neikea")
 
 
+class Event:
+    type: str = ""
+    message: Optional[str] = None
+    sender: Optional[discord.User] = None
+    processed: bool = False
+
+    def __init__(self, type_, message, sender):
+        self.type = type_
+        self.message = message
+        self.sender = sender
+
+
 class Dispatcher(discord.Client):
     async def on_ready(self):
         logger.info("Connected as %s (id: %s)", self.user, self.user.id)
@@ -21,6 +33,8 @@ class Dispatcher(discord.Client):
             return
 
         logger.info(f"<%s> %s", message.author, message.content)
+        event = Event("message", message.content, message.author)
+        event.discord_message = message
 
     async def on_error(self, event, *args, **kwargs):
         logger.error("Error: %s, %s, %s", event, args, kwargs)

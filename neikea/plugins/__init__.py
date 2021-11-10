@@ -47,7 +47,10 @@ class Processor(object):
             if not hasattr(method, "pattern"):
                 found = True
             elif hasattr(event, "message"):
-                match = method.pattern.fullmatch(event.message)
+                message = event.message
+                if isinstance(message, dict):
+                    message = message[method.message_version]
+                match = method.pattern.fullmatch(message)
                 if match is not None:
                     found = True
                     args = match.groups()
@@ -59,16 +62,18 @@ class Processor(object):
 def handler(function):
     "Wrapper: Handle all events"
     function.handler = True
+    function.message_version = "clean"
     return function
 
 
-def match(regex):
+def match(regex, version="clean"):
     "Wrapper: Handle all events where the message matches the regex"
     pattern = re.compile(regex, re.I | re.UNICODE | re.DOTALL)
 
     def wrap(function):
         function.handler = True
         function.pattern = pattern
+        function.message_version = "clean"
         return function
 
     return wrap

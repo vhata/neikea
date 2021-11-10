@@ -10,7 +10,7 @@ from plugins import core
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("neikea")
 
-PLUGINS = {"Time": core.Time, "Banter": core.Banter}
+PLUGINS = {"Time": core.Time, "Banter": core.Banter, "Strip": core.Strip}
 
 
 class Event(dict):

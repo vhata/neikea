@@ -9,6 +9,30 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("neikea.plugins")
 
 
+class Strip(Processor):
+    """
+    Turn the 'message' string into a dict that will contain different
+    versions of the message, including (after this module):
+    'raw': the message as received
+    'stripped': the message without leading/trailing whitespace and punctuation
+    'clean': the same as 'stripped' at first, but will be replaced in the
+             Addressed Processor if the bot has been addressed
+    """
+
+    priority = -1600
+
+    pattern = re.compile(r"^\s*(.*?)\s*[?!.]*\s*$", re.DOTALL)
+
+    @handler
+    async def handle_strip(self, event):
+        event.message = {
+            "raw": event.message,
+        }
+        m = self.pattern.search(event.message["raw"])
+        assert m is not None
+        event.message["clean"] = event.message["stripped"] = m.group(1)
+
+
 time_replies = ["It's %H:%M!", "It's %-I:%M %p!"]
 date_replies = [
     "It's %A, %B %-d, %Y!",
@@ -172,7 +196,7 @@ class Banter(Processor):
     async def static(self, event):
         for banter in banter_replies.values():
             for match in banter["matches"]:
-                if re.fullmatch(match, event.message, re.I):
+                if re.fullmatch(match, event.message["clean"], re.I):
                     await event.discord_message.channel.send(
                         _interpolate(random.choice(banter["responses"]), event)
                     )

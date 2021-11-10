@@ -15,6 +15,7 @@ PLUGINS = {
     "Banter": core.Banter,
     "Strip": core.Strip,
     "Addressed": core.Addressed,
+    "Ignore": core.Ignore,
 }
 
 

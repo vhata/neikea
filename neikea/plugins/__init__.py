@@ -36,7 +36,7 @@ class Processor(object):
 
     async def process(self, event):
         "Process a single event"
-        if event.type not in self.event_types:
+        if self.event_types and event.type not in self.event_types:
             return
 
         if not self.processed and event.processed:

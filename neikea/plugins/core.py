@@ -126,6 +126,20 @@ class Addressed(Processor):
                 event.message["deaddressed"] = m.group("body")
 
 
+class Ignore(Processor):
+    priority = -1500
+    addressed = False
+    event_types = ()
+
+    ignore_users = []
+
+    @handler
+    async def handle_ignore(self, event):
+        if event.discord_message.author.id in self.ignore_users:
+            logger.info("Ignoring %s", event.discord_message.author)
+            event.processed = True
+
+
 time_replies = ["It's %H:%M!", "It's %-I:%M %p!"]
 date_replies = [
     "It's %A, %B %-d, %Y!",

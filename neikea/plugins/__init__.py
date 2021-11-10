@@ -29,6 +29,9 @@ class Processor(object):
             if getattr(item, "handler", False):
                 self._event_handlers.append(item)
 
+    async def setup(self, client):
+        pass
+
     async def process(self, event):
         "Process a single event"
         if event.type not in self.event_types:

@@ -37,22 +37,24 @@ class Dispatcher(discord.Client):
         super().__init__()
 
         self.processors = []
-        self.load_processors()
 
     async def process(self, event: Event):
         for p in self.processors:
             await p.process(event)
 
-    def load_processors(self):
+    async def load_processors(self):
         self.processors = []
         for p in PLUGINS:
-            self.processors.append(PLUGINS[p](p))
+            processor = PLUGINS[p](p)
+            await processor.setup(self)
+            self.processors.append(processor)
         self.processors.sort(key=lambda x: x.priority)
 
     async def on_ready(self):
         logger.info("Connected as %s (id: %s)", self.user, self.user.id)
         for guild in self.guilds:
             logger.info(f"Connected to: %s (id: %s)", guild.name, guild.id)
+        await self.load_processors()
 
     async def on_message(self, message):
         # Failsafe

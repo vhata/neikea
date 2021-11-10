@@ -20,6 +20,7 @@ class Strip(Processor):
     """
 
     priority = -1600
+    addressed = False
 
     pattern = re.compile(r"^\s*(.*?)\s*[?!.]*\s*$", re.DOTALL)
 
@@ -31,6 +32,98 @@ class Strip(Processor):
         m = self.pattern.search(event.message["raw"])
         assert m is not None
         event.message["clean"] = event.message["stripped"] = m.group(1)
+
+
+class Addressed(Processor):
+    """
+    Check to see if this event was addressed to the bot. It looks for messages
+    of the forms:
+
+    @botname: foo
+    foo, @botname
+
+    while still being lenient with whitespace and punctuation.  It avoids
+    responding to messages like "@botname is here".
+    After this processor, the event has a truthy "addressed" property, and
+    the message has two new versions:
+    'clean':
+        the message stripped of the address and of punctuation (should be
+        ready to be processed by most other processors)
+    'deaddressed':
+        the 'raw' message (with whitespace and punctuation) but without the
+        address part of the message
+    """
+
+    priority = -1500
+    addressed = False
+
+    verbs = [
+        "is",
+        "has",
+        "was",
+        "might",
+        "may",
+        "would",
+        "will",
+        "isn't",
+        "hasn't",
+        "wasn't",
+        "wouldn't",
+        "won't",
+        "can",
+        "can't",
+        "did",
+        "didn't",
+        "said",
+        "says",
+        "should",
+        "shouldn't",
+        "does",
+        "doesn't",
+    ]
+
+    async def setup(self, client):
+        self.mention = f"<@!{client.user.id}>"
+
+        self.patterns = [
+            re.compile(
+                r"^\s*(?P<username>%s)" % self.mention
+                + r"(?:\s*[:;.?>!,-]+\s+|\s+|\s*[,:]\s*)(?P<body>.*)",
+                re.I | re.DOTALL,
+            ),
+            # "hello there, bot"-style addressing. But we want to be sure that
+            # there wasn't normal addressing too.
+            # (e.g. "@otheruser: we already have a bot, @botname")
+            re.compile(
+                r"^(?:\S+:.*|(?P<body>.*),\s*(?P<username>%s))[\s?!.]*$" % self.mention,
+                re.I | re.DOTALL,
+            ),
+        ]
+        # Avoid responding to things like "@botname is our bot"
+        verbs = r"|".join(re.escape(x) for x in self.verbs)
+        self.verb_pattern = re.compile(
+            r"^(?:%s)\s+(?:%s)\s+" % (self.mention, verbs), re.I | re.DOTALL
+        )
+
+    @handler
+    async def handle_addressed(self, event):
+        if "addressed" not in event:
+            event.addressed = False
+
+        if self.verb_pattern.match(event.message["stripped"]):
+            return
+
+        for pattern in self.patterns:
+
+            matches = pattern.search(event.message["stripped"])
+            if matches and matches.group("username"):
+                new_message = matches.group("body")
+                event.addressed = True
+                event.message["clean"] = new_message
+
+                m = pattern.search(event.message["raw"])
+                assert m is not None
+                event.message["deaddressed"] = m.group("body")
 
 
 time_replies = ["It's %H:%M!", "It's %-I:%M %p!"]

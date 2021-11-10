@@ -15,11 +15,13 @@ class Processor(object):
     priority: Processors are handled in ascending order of priority
     processed: Processor will handle events that other Processors have already
                marked as being dealt with
+    addressed: Processor will only handle the event if the bot is addressed
     """
 
     event_types = ("message",)
     priority = 1500  # middle ground
     processed = False
+    addressed = True
 
     def __init__(self, name):
         self.name = name
@@ -38,6 +40,9 @@ class Processor(object):
             return
 
         if not self.processed and event.processed:
+            return
+
+        if not event.get("addressed", True) and self.addressed:
             return
 
         for method in self._event_handlers:

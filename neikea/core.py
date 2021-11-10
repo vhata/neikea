@@ -11,11 +11,13 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("neikea")
 
 PLUGINS = {
-    "Time": core.Time,
-    "Banter": core.Banter,
+    # meta-plugins for pre-processing the message
     "Strip": core.Strip,
     "Addressed": core.Addressed,
     "Ignore": core.Ignore,
+    # functional plugins
+    "Banter": core.Banter,
+    "Time": core.Time,
 }
 
 

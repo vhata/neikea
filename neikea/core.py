@@ -13,16 +13,21 @@ logger = logging.getLogger("neikea")
 PLUGINS = {"Time": core.Time, "Banter": core.Banter}
 
 
-class Event:
-    type: str = ""
-    message: Optional[str] = None
-    sender: Optional[discord.User] = None
-    processed: bool = False
+class Event(dict):
+    def __init__(self, type_: str, message: str, sender: discord.User):
+        self.type: str = type_
+        self.message: str = message
+        self.sender: discord.User = sender
+        self.processed: bool = False
 
-    def __init__(self, type_, message, sender):
-        self.type = type_
-        self.message = message
-        self.sender = sender
+    def __getattr__(self, name):
+        try:
+            return self[name]
+        except KeyError as e:
+            raise AttributeError(e)
+
+    def __setattr__(self, name, value):
+        self[name] = value
 
 
 class Dispatcher(discord.Client):

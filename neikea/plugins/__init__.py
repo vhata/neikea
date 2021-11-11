@@ -16,12 +16,14 @@ class Processor(object):
     processed: Processor will handle events that other Processors have already
                marked as being dealt with
     addressed: Processor will only handle the event if the bot is addressed
+    autoload: load this Processor automatically on start up
     """
 
     event_types = ("message",)
     priority = 1500  # middle ground
     processed = False
     addressed = True
+    autoload = True
 
     def __init__(self, name):
         self.name = name

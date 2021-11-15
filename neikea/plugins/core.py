@@ -113,6 +113,11 @@ class Addressed(Processor):
         if self.verb_pattern.match(event.message["stripped"]):
             return
 
+        # Private messages are always addressing the bot, although we will
+        # still create the 'clean' version of the message below.
+        if event.private:
+            event.addressed = True
+
         for pattern in self.patterns:
 
             matches = pattern.search(event.message["stripped"])

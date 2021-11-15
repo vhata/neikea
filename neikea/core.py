@@ -22,6 +22,7 @@ class Event(dict):
         self.message: str = message
         self.sender: discord.User = sender
         self.processed: bool = False
+        self.private: bool = False
 
     def __getattr__(self, name):
         try:
@@ -100,6 +101,8 @@ class Dispatcher(discord.Client):
 
         logger.info(f"<%s> %s", message.author, message.content)
         event = Event("message", message.content, message.author)
+        if isinstance(message.channel, discord.channel.DMChannel):
+            event.private = True
         event.discord_message = message
         await self.process(event)
 

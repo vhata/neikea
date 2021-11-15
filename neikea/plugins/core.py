@@ -156,18 +156,12 @@ class Time(Processor):
     @match("time")
     async def time(self, event):
         t = datetime.now()
-        await event.discord_message.channel.send(
-            t.strftime(random.choice(time_replies))
-        )
-        event.processed = True
+        await event.addresponse(t.strftime(random.choice(time_replies)))
 
     @match("date")
     async def date(self, event):
         t = datetime.now()
-        await event.discord_message.channel.send(
-            t.strftime(random.choice(date_replies))
-        )
-        event.processed = True
+        await event.addresponse(t.strftime(random.choice(date_replies)))
 
 
 greetings = (
@@ -218,33 +212,37 @@ banter_replies = {
     },
     "reward": {
         "matches": [r"\bbot(\s+|\-)?snack\b"],
-        "responses": ["thanks, $who", "$who: thankyou!", ":)"],
+        "responses": ["thanks, $who", "$who thankyou!", ":)"],
+        "address": False,
     },
     "praise": {
         "matches": [
             r"\bgood(\s+fuckin[\'g]?)?\s+(lad|bo(t|y)|g([ui]|r+)rl)\b",
             r"\byou\s+(rock|rocks|rewl|rule|are\s+so+\s+co+l)\b",
         ],
-        "responses": ["thanks, $who", "$who: thankyou!", ":)"],
+        "responses": ["thanks, $who", "$who thankyou!", ":)"],
+        "address": False,
     },
     "thanks": {
         "matches": [r"\bthank(s|\s*you)\b", r"^\s*ta\s*$", r"^\s*shot\s*$"],
         "responses": [
             "no problem, $who",
-            "$who: my pleasure",
+            "$who my pleasure",
             "sure thing, $who",
             "no worries, $who",
-            "$who: np",
+            "$who np",
             "no probs, $who",
-            "$who: no problemo",
-            "$who: not at all",
+            "$who no problemo",
+            "$who not at all",
         ],
+        "address": False,
     },
     "criticism": {
         "matches": [
             r"\b((kak|bad|st(u|oo)pid|dumb)(\s+fuckin[\'g]?)?\s+(bo(t|y)|g([ui]|r+)rl))|(bot(\s|\-)?s(mack|lap))\b",
         ],
         "responses": ["*whimper*", "sorry, $who :(", ":(", "*cringe*"],
+        "address": False,
     },
     "testdates": {
         "matches": [
@@ -309,8 +307,8 @@ class Banter(Processor):
         for banter in banter_replies.values():
             for match in banter["matches"]:
                 if re.fullmatch(match, event.message["clean"], re.I):
-                    await event.discord_message.channel.send(
-                        _interpolate(random.choice(banter["responses"]), event)
+                    await event.addresponse(
+                        _interpolate(random.choice(banter["responses"]), event),
+                        address=banter.get("address", True),
                     )
-                    event.processed = True
                     return

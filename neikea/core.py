@@ -23,6 +23,7 @@ class Event(dict):
         self.sender: discord.User = sender
         self.processed: bool = False
         self.private: bool = False
+        self.discord_message: Optional[discord.Message] = None
 
     def __getattr__(self, name):
         try:
@@ -32,6 +33,36 @@ class Event(dict):
 
     def __setattr__(self, name, value):
         self[name] = value
+
+    async def addresponse(
+        self,
+        response: str,
+        channel: Optional[discord.abc.Messageable] = None,
+        address: bool = True,
+        processed: bool = True,
+    ):
+        """
+        Helper to respond to this event with message 'response'.
+        Options:
+        target: send to a different channel (by default, will be the text
+                channel or message thread the event was received in)
+        address: if False, and in public, will not @mention the person
+                 being replied to. Will not automatically @mention in a DM.
+        processed: if False, won't mark the event as processed after sending
+                   the response
+
+        Processors don't have to use this helper, but must remember to do the
+        right thing with `event.processed` and addressing the recipient.
+        """
+        if not channel:
+            channel = self.discord_message.channel
+
+        if not self.private and address:
+            response = f"<@!{self.discord_message.author.id}> {response}"
+
+        await channel.send(response)
+        if processed:
+            self.processed = True
 
 
 class Dispatcher(discord.Client):

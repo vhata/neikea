@@ -20,7 +20,7 @@ class Processor(object):
     """
 
     event_types = ("message",)
-    priority = 1500  # middle ground
+    priority = 500  # middle ground
     processed = False
     addressed = True
     autoload = True
@@ -63,7 +63,11 @@ class Processor(object):
                     args = match.groups()
                     kwargs = match.groupdict()
             if found:
-                await method(self, event, *args, **kwargs)
+                try:
+                    await method(self, event, *args, **kwargs)
+                except Exception as e:
+                    event.complain = "exception"
+                    event.exception = e
 
 
 def handler(function):

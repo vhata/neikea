@@ -76,6 +76,8 @@ class Dispatcher(discord.Client):
     async def process(self, event: Event):
         for p in self.processors:
             await p.process(event)
+        if event.get("exception"):
+            raise event.exception
 
     async def load_processors(self):
         self.processors = []

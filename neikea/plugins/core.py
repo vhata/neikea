@@ -145,6 +145,42 @@ class Ignore(Processor):
             event.processed = True
 
 
+class Complain(Processor):
+
+    priority = 950
+    processed = True
+    event_types = ()
+
+    complaints = {
+        "nonsense": (
+            "Huh?",
+            "Sorry...",
+            "Excuse me?",
+            "*blink*",
+            "What?",
+        ),
+        "exception": (
+            "I'm not feeling too well",
+            "That didn't go down very well. Burp.",
+            "That didn't seem to agree with me",
+        ),
+        "network": (
+            "The tubes are clogged!",
+            "I can't reach that site",
+            "That site seems to be down",
+        ),
+    }
+
+    @handler
+    async def complain(self, event):
+        if "complain" in event:
+            await event.addresponse(random.choice(self.complaints[event.complain]))
+        elif event.processed:
+            return
+        else:
+            await event.addresponse(random.choice(self.complaints["nonsense"]))
+
+
 time_replies = ["It's %H:%M!", "It's %-I:%M %p!"]
 date_replies = [
     "It's %A, %B %-d, %Y!",
@@ -265,6 +301,10 @@ banter_replies = {
             r"\binterpolate discord\b",
         ],
         "responses": ["who $who channel $channel server $server"],
+    },
+    "testexception": {
+        "matches": [r"\bthrow exception\b"],
+        "responses": None,
     },
 }
 
